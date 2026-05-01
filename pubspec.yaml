@@ -1,0 +1,48 @@
+name: asistencia
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+4
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  firebase_core: ^4.6.0
+  firebase_auth: ^6.3.0
+  cloud_firestore: ^6.2.0
+  google_sign_in: ^6.2.1
+  mobile_scanner: ^5.1.0
+  qr_flutter: ^4.1.0
+  permission_handler: ^12.0.1
+  firebase_remote_config: ^6.3.0
+  package_info_plus: ^10.0.0
+  url_launcher: ^6.3.2
+  intl: ^0.20.2
+  shared_preferences: ^2.5.5
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  # 1. AGREGAMOS ESTA LÍNEA AQUÍ (Es fundamental)
+  flutter_launcher_icons: "^0.13.1"
+
+flutter:
+  uses-material-design: true
+
+  # 2. HABILITAMOS LA CARPETA ASSETS (Si no, Flutter no encontrará el logo)
+  assets:
+    - assets/google_logo.png
+    - assets/logo_aeca.png
+    - assets/logo_fondo.png
+    
+# 3. EL BLOQUE DE ICONOS VA AQUÍ AL FINAL, SIN ESPACIOS AL MARGEN
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo_aeca.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/logo_aeca.png"

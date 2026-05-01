@@ -1,0 +1,2 @@
+C:/Users/Oficina/Documents/asistencia_final/android/app/.cxx/debug/2424344d/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/Oficina/Documents/asistencia_final/android/app/.cxx/debug/2424344d/armeabi-v7a/CMakeFiles/rebuild_cache.dir
