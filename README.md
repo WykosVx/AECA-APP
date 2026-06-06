@@ -1,3 +1,4 @@
+![Logo de AECA-APP](logo.gif)
 # 🎓 **ASISTENCIA DOCENTES (AECA-APP)**
 
 Esta es la aplicación oficial para la gestión y registro de asistencia docente. Diseñada para facilitar el control académico mediante tecnología móvil eficiente.
