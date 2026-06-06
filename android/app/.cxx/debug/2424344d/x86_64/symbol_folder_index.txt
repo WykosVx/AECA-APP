@@ -1,1 +1,1 @@
-C:\Users\Oficina\Documents\asistencia_final\android\app\build\intermediates\cxx\debug\2424344d\obj\x86_64
+C:\Users\Oficina\Documents\aeca_limpio\android\app\build\intermediates\cxx\debug\2424344d\obj\x86_64

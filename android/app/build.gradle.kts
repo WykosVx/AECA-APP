@@ -10,6 +10,14 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+applicationVariants.all {
+        val variant = this
+        variant.outputs.all {
+            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            output.outputFileName = "app-debug.apk"
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -22,10 +30,9 @@ android {
    defaultConfig {
         applicationId = "com.aeca.asistencia"
         
-        minSdk = flutter.minSdkVersion // Bajamos a 21 para que sea compatible con TODO
-        targetSdk = 34 // <--- PONELO MANUAL EN 34. Esto quita el error de versión.
-        
-        versionCode = 2 // Subilo a 2 para que el celu lo tome como actualización
+        minSdk = flutter.minSdkVersion 
+        targetSdk = 34 
+        versionCode = 2 
         versionName = "1.0.1" 
         
         multiDexEnabled = true
@@ -37,6 +44,7 @@ android {
         }
     }
 }
+
 
 flutter {
     source = "../.."

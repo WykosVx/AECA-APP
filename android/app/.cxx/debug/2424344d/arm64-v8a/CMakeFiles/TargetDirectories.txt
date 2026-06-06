@@ -1,2 +1,2 @@
-C:/Users/Oficina/Documents/asistencia_final/android/app/.cxx/debug/2424344d/arm64-v8a/CMakeFiles/edit_cache.dir
-C:/Users/Oficina/Documents/asistencia_final/android/app/.cxx/debug/2424344d/arm64-v8a/CMakeFiles/rebuild_cache.dir
+C:/Users/Oficina/Documents/aeca_limpio/android/app/.cxx/debug/2424344d/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/Oficina/Documents/aeca_limpio/android/app/.cxx/debug/2424344d/arm64-v8a/CMakeFiles/rebuild_cache.dir

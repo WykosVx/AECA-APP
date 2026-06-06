@@ -7,7 +7,6 @@ class MisAsistencias extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Obtenemos el email del usuario logueado
     final String? userEmail = FirebaseAuth.instance.currentUser?.email;
 
     return Scaffold(
@@ -19,7 +18,7 @@ class MisAsistencias extends StatelessWidget {
         centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // USAMOS TUS CAMPOS: 'email' para filtrar y 'fecha' para ordenar
+       
         stream: FirebaseFirestore.instance
             .collection('Asistencias')
             .where('email', isEqualTo: userEmail) 
@@ -56,12 +55,12 @@ class MisAsistencias extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 child: ListTile(
                   leading: const Icon(Icons.verified, color: Colors.amber),
-                  // USAMOS TU CAMPO: 'reunion'
+                 
                   title: Text(
                     data['reunion'] ?? "Reunión AECA",
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
-                  // USAMOS TU CAMPO: 'fecha'
+                  
                   subtitle: Text(
                     "Fecha: ${data['fecha']}",
                     style: const TextStyle(color: Colors.amberAccent),

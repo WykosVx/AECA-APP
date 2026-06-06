@@ -1,38 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Importante para guardar el tema
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart'; 
 import 'screens/home_screen.dart'; 
-import 'screens/login_page.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-// Notificador global (Empieza en dark por defecto)
+import 'screens/cedula_screen.dart'; 
+import 'package:lottie/lottie.dart';
+
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 1. Inicializar Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    ).timeout(const Duration(seconds: 5));
-    print("Firebase cargó bien");
+    );
   } catch (e) {
-    print("Error de Firebase: $e");
+    debugPrint("Error al inicializar Firebase: $e");
   }
 
-  // 2. CARGAR EL TEMA GUARDADO
   final prefs = await SharedPreferences.getInstance();
   final String? savedTheme = prefs.getString('themeMode');
-  
-  if (savedTheme == 'light') {
-    themeNotifier.value = ThemeMode.light;
-  } else if (savedTheme == 'dark') {
-    themeNotifier.value = ThemeMode.dark;
-  } else {
-    themeNotifier.value = ThemeMode.system;
-  }
+  themeNotifier.value = savedTheme == 'light' 
+      ? ThemeMode.light 
+      : (savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.system);
   
   runApp(const MyApp());
 }
@@ -48,77 +41,87 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'AECA APP',
-          
-          // Tema Claro
           theme: ThemeData(
             brightness: Brightness.light,
             primarySwatch: Colors.amber,
             scaffoldBackgroundColor: Colors.white,
             appBarTheme: const AppBarTheme(backgroundColor: Colors.amber, foregroundColor: Colors.black),
           ),
-
-          // Tema Oscuro
           darkTheme: ThemeData(
             brightness: Brightness.dark,
             primarySwatch: Colors.amber,
             scaffoldBackgroundColor: Colors.black,
             appBarTheme: AppBarTheme(backgroundColor: Colors.grey[900]),
           ),
-
           themeMode: currentMode,
-
-          // 3. Lógica de inicio de sesión persistente
-          home: StreamBuilder<User?>(
-            stream: FirebaseAuth.instance.authStateChanges(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(body: Center(child: CircularProgressIndicator()));
-              }
-              // Si tiene datos, va al Home, si no, al Login
-              return snapshot.hasData ? const HomeScreen() : const LoginPage();
-            },
-          ),
+          home: const AuthWrapper(), 
         );
       },
     );
   }
 }
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+
+// 1. LÓGICA DE SESIÓN (AuthWrapper)
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        if (!snapshot.hasData) return const LoginPage();
+        
+        // Si hay usuario, vamos a verificar si ya vinculó su cédula
+        return const DataValidatorWrapper();
+      },
+    );
+  }
 }
 
-class _LoginPageState extends State<LoginPage> {
-  late Image logoAeca;
-  late Image logoGoogle;
+// 2. Sub-wrapper para verificar datos guardados
+class DataValidatorWrapper extends StatefulWidget {
+  const DataValidatorWrapper({super.key});
+  @override
+  State<DataValidatorWrapper> createState() => _DataValidatorWrapperState();
+}
+
+class _DataValidatorWrapperState extends State<DataValidatorWrapper> {
+  bool _verificando = true;
+  bool _registrado = false;
 
   @override
   void initState() {
     super.initState();
-    // Cargamos las imágenes con gaplessPlayback activado
-    logoAeca = Image.asset(
-      'assets/logo_aeca.png', 
-      height: 120, 
-      gaplessPlayback: true,
-      filterQuality: FilterQuality.medium,
-    );
-    logoGoogle = Image.asset(
-      'assets/google_logo.png', 
-      height: 22, 
-      gaplessPlayback: true,
-      filterQuality: FilterQuality.medium,
-    );
+    _checkData();
+  }
+
+  Future<void> _checkData() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Verificamos si existen los datos de la cédula y nombre
+    setState(() {
+      _registrado = prefs.containsKey('user_cedula') && prefs.containsKey('user_nombre_completo');
+      _verificando = false;
+    });
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Forzamos la precarga en el cache de la GPU
-    precacheImage(logoAeca.image, context);
-    precacheImage(logoGoogle.image, context);
+  Widget build(BuildContext context) {
+    if (_verificando) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    
+    // Si no está registrado, enviamos a CedulaScreen y pasamos la función para re-verificar al completar
+    if (!_registrado) return CedulaScreen(onComplete: _checkData);
+    
+    return const HomeScreen();
   }
+}
+
+// 3. LOGIN PAGE
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
 
   Future<void> _signInWithGoogle(BuildContext context) async {
     try {
@@ -131,82 +134,68 @@ class _LoginPageState extends State<LoginPage> {
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 
-  @override
-Widget build(BuildContext context) {
-  // Detectamos si el modo actual es oscuro para ajustar los colores de texto y botones
-  final bool isDark = Theme.of(context).brightness == Brightness.dark;
-
-  return Scaffold(
-    // El fondo ahora cambia automáticamente según el tema
-    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-    body: Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
+ @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            RepaintBoundary(child: logoAeca), 
-            
-            const SizedBox(height: 20),
-            Text(
-              "AECA APP", 
-              style: TextStyle(
-                fontSize: 32, 
-                fontWeight: FontWeight.bold, 
-                // Si está en modo claro, el texto debe ser negro para que se vea
-                color: isDark ? Colors.white : Colors.black, 
-                letterSpacing: 1.2
-              )
+            const Spacer(),
+            Image.asset(
+              'assets/logo_fondo.png', 
+              height: 120,
+              fit: BoxFit.contain,
             ),
-            Text(
-              "Control de Acceso", 
-              style: TextStyle(
-                fontSize: 14, 
-                color: isDark ? Colors.white54 : Colors.black54
-              )
-            ),
-            
             const SizedBox(height: 50),
-
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                // Ajustamos el botón de Google para que se vea bien en ambos fondos
-                backgroundColor: isDark ? const Color(0xFF131314) : Colors.grey[200],
-                foregroundColor: isDark ? Colors.white : Colors.black87,
-                minimumSize: const Size(double.infinity, 54),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                side: BorderSide(
-                  color: isDark ? const Color(0xFF444746) : Colors.grey[400]!
+            SizedBox(
+              width: 260, 
+              height: 50, 
+              child: ElevatedButton(
+                onPressed: () => _signInWithGoogle(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black87,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                elevation: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/google_logo.png',
+                      height: 20,
+                      width: 20,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Continuar con Google',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                     ),
+                    ),
+                  ],
+                ),
               ),
-              onPressed: () => _signInWithGoogle(context),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: RepaintBoundary(child: logoGoogle),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Continuar con Google',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)
-                  ),
-                ],
+            ),
+            
+            Expanded(
+              child: Lottie.asset(
+                'assets/animations/people-animation.json', 
+                repeat: true,
+                fit: BoxFit.contain, 
               ),
             ),
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

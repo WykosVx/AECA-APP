@@ -23,23 +23,30 @@ dependencies:
   url_launcher: ^6.3.2
   intl: ^0.20.2
   shared_preferences: ^2.5.5
+  share_plus: ^13.1.0
+  screenshot: ^3.0.0
+  path_provider: ^2.1.5
+  lottie: ^3.3.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  # 1. AGREGAMOS ESTA LÍNEA AQUÍ (Es fundamental)
+  
   flutter_launcher_icons: "^0.13.1"
 
 flutter:
   uses-material-design: true
 
-  # 2. HABILITAMOS LA CARPETA ASSETS (Si no, Flutter no encontrará el logo)
+
   assets:
+    - assets/animations/cedula-screen-animation.json
+    - assets/animations/qr-animation.json
+    - assets/animations/people-animation.json
     - assets/google_logo.png
     - assets/logo_aeca.png
     - assets/logo_fondo.png
-    
-# 3. EL BLOQUE DE ICONOS VA AQUÍ AL FINAL, SIN ESPACIOS AL MARGEN
+    - assets/constancia_plantilla.png
+
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true

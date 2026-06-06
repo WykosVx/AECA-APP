@@ -5,6 +5,9 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
+import 'constancia_screen.dart';
+import 'generador_qr_screen.dart';
+import 'package:lottie/lottie.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,30 +18,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 1;
-
-  @override
-  void initState() {
-    super.initState();
-    _verificarAcceso();
-  }
-
-  // --- 1. LÓGICA DE SEGURIDAD ---
-  Future<void> _verificarAcceso() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final doc = await FirebaseFirestore.instance
-        .collection('usuarios_autorizados')
-        .doc(user.email)
-        .get();
-
-    if (!doc.exists) {
-      if (!mounted) return;
-      await FirebaseAuth.instance.signOut();
-    }
-  }
-
-  // --- NUEVA FUNCIÓN: CERRAR SESIÓN ---
   void _confirmarCerrarSesion(BuildContext context) {
     showDialog(
       context: context,
@@ -47,12 +26,10 @@ class _HomeScreenState extends State<HomeScreen> {
         content: const Text("¿Estás seguro de que quieres salir de AECA APP?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("CANCELAR"),
-          ),
-          TextButton(
             onPressed: () async {
               Navigator.pop(context);
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.clear(); 
               await FirebaseAuth.instance.signOut();
             },
             child: const Text("CERRAR SESIÓN", style: TextStyle(color: Colors.red)),
@@ -61,8 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  // --- 2. LÓGICA DEL ESCÁNER ---
+  
   void _abrirEscanner(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -85,25 +61,43 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _registrarAsistencia(String jornadaId) async {
+  Future<void> _registrarAsistencia(String rawData) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
+    final parts = rawData.split('|');
+    if (parts.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("QR no válido"), backgroundColor: Colors.red));
+      return;
+    }
+
+final prefs = await SharedPreferences.getInstance();
+    final String nombreManual = prefs.getString('user_nombre_completo') ?? "Socio";
+    final String cedulaManual = prefs.getString('user_cedula') ?? "Sin cédula";
+    final jornadaId = parts[0];
+    final int timestamp = int.tryParse(parts[1]) ?? 0;
+
+    if (DateTime.now().millisecondsSinceEpoch - timestamp > 10000) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("QR expirado, intente de nuevo"), backgroundColor: Colors.red));
+      return;
+    }
+
     try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_jornada_id', jornadaId);
+
       await FirebaseFirestore.instance.collection('Asistencias').add({
-        'usuario': user.displayName ?? "Socio",
-        'email': user.email,
-        'jornada': jornadaId,
-        'fecha': FieldValue.serverTimestamp(),
+      'usuario': nombreManual, 
+      'cedula': cedulaManual,  
+      'email': user.email,
+      'jornada': jornadaId,
+      'fecha': FieldValue.serverTimestamp(),
       });
+      
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ Asistencia registrada"), backgroundColor: Colors.green),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ Asistencia registrada"), backgroundColor: Colors.green));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("❌ Error: $e"), backgroundColor: Colors.red),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Error: $e"), backgroundColor: Colors.red));
     }
   }
 
@@ -130,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text("Bienvenido,", style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
                       Text(user?.displayName ?? "Socio AECA",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)),
                       Row(
                         children: [
                           Text(esAdmin ? "Administrador" : "Socio", style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
@@ -143,7 +137,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  // BOTÓN DE PERFIL CON MENÚ DE CIERRE DE SESIÓN
                   PopupMenuButton<String>(
                     offset: const Offset(0, 60),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -166,24 +159,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       radius: 30,
                       backgroundColor: Colors.amber,
                       backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
-                      child: user?.photoURL == null 
-                          ? const Icon(Icons.person, color: Colors.white) 
-                          : null,
+                      child: user?.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
                     ),
                   ),
                 ],
               ),
             ),
-            const Spacer(),
-            const Icon(Icons.qr_code_scanner, size: 120, color: Colors.amber),
-            const SizedBox(height: 20),
-            Text("Toca abajo para escanear", style: TextStyle(color: isDark ? Colors.white38 : Colors.black38)),
-            const Spacer(),
+            SizedBox(
+  height: 250, 
+  child: Lottie.asset(
+    'assets/animations/qr-animation.json', 
+    repeat: true,
+    animate: true,
+    fit: BoxFit.contain,
+  ),
+),
+const SizedBox(height: 20),
+Text(
+  "Toca abajo para escanear", 
+  style: TextStyle(color: isDark ? Colors.white38 : Colors.black38)
+),
+const Spacer(),
             if (esAdmin)
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GeneradorQrScreen())),
                   icon: const Icon(Icons.qr_code_2),
                   label: const Text("GENERAR QR JORNADA"),
                   style: ElevatedButton.styleFrom(
@@ -216,7 +217,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- 4. TEMA ---
   void _mostrarPanelTema(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -252,7 +252,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// --- 5. PÁGINA DE HISTORIAL ---
 class HistorialPage extends StatelessWidget {
   const HistorialPage({super.key});
 
@@ -281,16 +280,31 @@ class HistorialPage extends StatelessWidget {
             itemCount: docs.length,
             itemBuilder: (context, index) {
               var data = docs[index].data() as Map<String, dynamic>;
-              DateTime fecha = data['fecha'] != null 
-                  ? (data['fecha'] as Timestamp).toDate() 
-                  : DateTime.now();
+              DateTime fecha = data['fecha'] != null ? (data['fecha'] as Timestamp).toDate() : DateTime.now();
+              String nombreJornada = data['jornada'] ?? "Jornada";
+              String fechaStr = DateFormat('dd/MM/yyyy').format(fecha);
+
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                 color: isDark ? Colors.grey[900] : Colors.white,
                 child: ListTile(
                   leading: const Icon(Icons.check_circle, color: Colors.green),
-                  title: Text(data['jornada'] ?? "Jornada"),
+                  title: Text(nombreJornada),
                   subtitle: Text(DateFormat('dd/MM/yyyy - HH:mm').format(fecha)),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.picture_as_pdf, color: Colors.amber),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ConstanciaPreviewScreen(
+                            nombreJornada: nombreJornada,
+                            fechaJornada: fechaStr,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               );
             },
