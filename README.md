@@ -1,17 +1,29 @@
-# asistencia_docentes
+# 🎓 **ASISTENCIA DOCENTES (AECA-APP)**
 
-A new Flutter project.
+Esta es la aplicación oficial para la gestión y registro de asistencia docente. Diseñada para facilitar el control académico mediante tecnología móvil eficiente.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+### 🌟 **Características**
 
-A few resources to get you started if this is your first Flutter project:
+* 📄 **Constancias Personalizadas:** Generación automática de constancias con datos dinámicos y específicos para cada usuario.
+* ✨ **UI/UX Mejorada:** Interfaz moderna con animaciones fluidas (**Lottie**) para una experiencia de usuario intuitiva y profesional.
+* 📱 **Control de Asistencia:** Registro ágil y eficiente.
+* 🚀 **Rendimiento Optimizado:** Proyecto configurado para ser ligero y fácil de mantener.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 🛠️ **Tecnologías Utilizadas**
+
+* **Flutter:** Framework principal para el desarrollo multiplataforma.
+* **Dart:** Lenguaje de programación.
+* **Lottie:** Librería para animaciones vectoriales de alta calidad.
+* **Git/GitHub:** Control de versiones y despliegue.
+
+---
+
+### 📦 **Releases**
+Puedes descargar la versión instalable más reciente (APK) desde la sección de **[Releases](https://github.com/WykosVx/AECA-APP/releases)** de este repositorio.
+
+---
+> *Proyecto desarrollado con dedicación para la AECA.*
