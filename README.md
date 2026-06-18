@@ -4,6 +4,7 @@
 ![Dart](https://img.shields.io/badge/Dart-3.x-00B4AB?logo=dart)
 ![Firebase](https://img.shields.io/badge/Firebase-Integrated-FFCA28?logo=firebase)
 ![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)
+<img src="https://img.shields.io/badge/AECA%20🇵🇾-gold?style=for-the-badge" alt="Paraguay">
 ![Firestore](https://img.shields.io/badge/Firestore-Enabled-FFCA28?logo=firebase)
 ![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white)
 ![Release](https://img.shields.io/badge/release-v0.12.0-blue)
