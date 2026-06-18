@@ -3,9 +3,9 @@
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.x-00B4AB?logo=dart)
 ![Firebase](https://img.shields.io/badge/Firebase-Integrated-FFCA28?logo=firebase)
+![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)
 ![Firestore](https://img.shields.io/badge/Firestore-Enabled-FFCA28?logo=firebase)
 ![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white)
-![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?logo=androidstudio&logoColor=white)
 ![Release](https://img.shields.io/badge/release-v0.12.0-blue)
 # 🎓 **ASISTENCIA DOCENTES (AECA-APP)**
 
