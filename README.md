@@ -7,9 +7,6 @@
 ![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white)
 ![Android Studio](https://img.shields.io/badge/Android%20Studio-3DDC84?logo=androidstudio&logoColor=white)
 ![Release](https://img.shields.io/badge/release-v0.12.0-blue)
-![Maintained](https://img.shields.io/badge/Maintained-yes-brightgreen)
-![Build](https://img.shields.io/badge/build-passing-brightgreen)
-![License](https://img.shields.io/badge/License-Proprietary-red)
 # 🎓 **ASISTENCIA DOCENTES (AECA-APP)**
 
 Esta es la aplicación oficial para la gestión y registro de asistencia docente. Diseñada para facilitar el control académico mediante tecnología móvil eficiente.
