@@ -29,7 +29,7 @@ Esta es la aplicación oficial para la gestión y registro de asistencia docente
 * **Dart:** Lenguaje de programación.
 * **Lottie:** Librería para animaciones vectoriales de alta calidad.
 * **Git/GitHub:** Control de versiones y despliegue.
-
+* **Firebase:** Control de las asistencias para los admins.
 ---
 
 ### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Objects/Briefcase.webp" alt="Briefcase" width="25" height="25" />**Releases**
