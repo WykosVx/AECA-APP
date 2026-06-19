@@ -18,7 +18,7 @@ Esta es la aplicación oficial para la gestión y registro de asistencia docente
 
 * 📄 **Constancias Personalizadas:** Generación automática de constancias con datos dinámicos y específicos para cada usuario.
 * ✨ **UI/UX Mejorada:** Interfaz moderna con animaciones fluidas (**Lottie**) para una experiencia de usuario intuitiva y profesional.
-* 📱 **Control de Asistencia:** Registro ágil y eficiente.
+* <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Objects/Tear%20Off%20Calendar.webp" alt="Tear Off Calendar" width="25" height="25" /> **Control de Asistencia:** Registro ágil y eficiente.
 * 🚀 **Rendimiento Optimizado:** Proyecto configurado para ser ligero y fácil de mantener.
 
 ---
