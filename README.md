@@ -8,13 +8,13 @@
 ![Firestore](https://img.shields.io/badge/Firestore-Enabled-FFCA28?logo=firebase)
 ![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white)
 ![Release](https://img.shields.io/badge/release-v0.12.0-blue)
-# 🎓 **ASISTENCIA DOCENTES (AECA-APP)**
+# <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Objects/Graduation%20Cap.webp" alt="Graduation Cap" width="25" height="25" /> **ASISTENCIA DOCENTES (AECA-APP)**
 
 Esta es la aplicación oficial para la gestión y registro de asistencia docente. Diseñada para facilitar el control académico mediante tecnología móvil eficiente.
 
 ---
 
-### 🌟 **Características**
+### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Glowing%20Star.webp" alt="Glowing Star" width="25" height="25" /> **Características**
 
 * 📄 **Constancias Personalizadas:** Generación automática de constancias con datos dinámicos y específicos para cada usuario.
 * ✨ **UI/UX Mejorada:** Interfaz moderna con animaciones fluidas (**Lottie**) para una experiencia de usuario intuitiva y profesional.
@@ -23,7 +23,7 @@ Esta es la aplicación oficial para la gestión y registro de asistencia docente
 
 ---
 
-### 🛠️ **Tecnologías Utilizadas**
+### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Objects/Toolbox.webp" alt="Toolbox" width="25" height="25" /> **Tecnologías Utilizadas**
 
 * **Flutter:** Framework principal para el desarrollo multiplataforma.
 * **Dart:** Lenguaje de programación.
@@ -32,7 +32,7 @@ Esta es la aplicación oficial para la gestión y registro de asistencia docente
 
 ---
 
-### 📦 **Releases**
+### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Objects/Briefcase.webp" alt="Briefcase" width="25" height="25" />**Releases**
 Puedes descargar la versión instalable más reciente (APK) desde la sección de **[Releases](https://github.com/WykosVx/AECA-APP/releases)** de este repositorio.
 
 ---
