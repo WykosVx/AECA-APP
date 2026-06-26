@@ -1,4 +1,7 @@
+<p align="center">
+  
 <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Honeybee.webp" alt="Honeybee" width="340" height="340" />
+</p>
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.x-00B4AB?logo=dart)
