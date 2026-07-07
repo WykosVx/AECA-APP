@@ -7,6 +7,7 @@ import 'firebase_options.dart';
 import 'screens/home_screen.dart'; 
 import 'screens/cedula_screen.dart'; 
 import 'package:lottie/lottie.dart';
+import 'dart:ui';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
 
@@ -75,14 +76,12 @@ class AuthWrapper extends StatelessWidget {
         }
         if (!snapshot.hasData) return const LoginPage();
         
-        // Si hay usuario, vamos a verificar si ya vinculó su cédula
         return const DataValidatorWrapper();
       },
     );
   }
 }
 
-// 2. Sub-wrapper para verificar datos guardados
 class DataValidatorWrapper extends StatefulWidget {
   const DataValidatorWrapper({super.key});
   @override
@@ -101,7 +100,7 @@ class _DataValidatorWrapperState extends State<DataValidatorWrapper> {
 
   Future<void> _checkData() async {
     final prefs = await SharedPreferences.getInstance();
-    // Verificamos si existen los datos de la cédula y nombre
+
     setState(() {
       _registrado = prefs.containsKey('user_cedula') && prefs.containsKey('user_nombre_completo');
       _verificando = false;
@@ -141,60 +140,99 @@ class LoginPage extends StatelessWidget {
  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Lottie.asset(
+              'assets/animations/notch-animation.json', 
+              repeat: true,
+              fit: BoxFit.fitWidth,
+            ),
+          ),
+          
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(),
+                Image.asset(
+                  'assets/logo_fondo.png', 
+                  height: 120,
+                  fit: BoxFit.contain,
+                ),
+              const SizedBox(height: 50),
+ClipRRect(
+  borderRadius: BorderRadius.circular(12),
+  child: BackdropFilter(
+    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+    child: Container(
+      width: 260,
+      height: 50,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withOpacity(0.2)
+              : Colors.black.withOpacity(0.1),
+          width: 1.5,
+        ),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: Theme.of(context).brightness == Brightness.dark
+              ? [
+                  Colors.white.withOpacity(0.12),
+                  Colors.white.withOpacity(0.03),
+                ]
+              : [
+                  Colors.black.withOpacity(0.05),
+                  Colors.black.withOpacity(0.01),
+                ],
+        ),
+      ),
+      child: InkWell(
+        onTap: () => _signInWithGoogle(context),
+        borderRadius: BorderRadius.circular(12),
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Spacer(),
             Image.asset(
-              'assets/logo_fondo.png', 
-              height: 120,
+              'assets/google_logo.png',
+              height: 20,
+              width: 20,
               fit: BoxFit.contain,
             ),
-            const SizedBox(height: 50),
-            SizedBox(
-              width: 260, 
-              height: 50, 
-              child: ElevatedButton(
-                onPressed: () => _signInWithGoogle(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black87,
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/google_logo.png',
-                      height: 20,
-                      width: 20,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Continuar con Google',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                     ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            Expanded(
-              child: Lottie.asset(
-                'assets/animations/people-animation.json', 
-                repeat: true,
-                fit: BoxFit.contain, 
+            const SizedBox(width: 12),
+            Text(
+              'Continuar con Google',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black87,
               ),
             ),
           ],
         ),
+      ),
+    ),
+  ),
+),
+                Expanded(
+                  child: Lottie.asset(
+                    'assets/animations/people-animation.json', 
+                    repeat: true,
+                    fit: BoxFit.contain, 
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
