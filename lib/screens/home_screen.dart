@@ -8,6 +8,7 @@ import '../main.dart';
 import 'constancia_screen.dart';
 import 'generador_qr_screen.dart';
 import 'package:lottie/lottie.dart';
+import 'dart:ui';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -71,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     final String nombreManual = prefs.getString('user_nombre_completo') ?? "Socio";
     final String cedulaManual = prefs.getString('user_cedula') ?? "Sin cédula";
     final jornadaId = parts[0];
@@ -155,63 +156,122 @@ final prefs = await SharedPreferences.getInstance();
                         ),
                       ),
                     ],
-                    child: CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.amber,
-                      backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
-                      child: user?.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.amber,
+                          backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
+                          child: user?.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
+                        ),
+                        IgnorePointer(
+                          child: SizedBox(
+                            width: 100, // Ajustado a 100 según lo que conversamos para que rodee bien el perfil
+                            height: 100,
+                            child: Lottie.asset(
+                              'assets/animations/circle-avataranimation.json',
+                              repeat: true,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
             SizedBox(
-  height: 250, 
-  child: Lottie.asset(
-    'assets/animations/qr-animation.json', 
-    repeat: true,
-    animate: true,
-    fit: BoxFit.contain,
-  ),
-),
-const SizedBox(height: 20),
-Text(
-  "Toca abajo para escanear", 
-  style: TextStyle(color: isDark ? Colors.white38 : Colors.black38)
-),
-const Spacer(),
-            if (esAdmin)
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: ElevatedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GeneradorQrScreen())),
-                  icon: const Icon(Icons.qr_code_2),
-                  label: const Text("GENERAR QR JORNADA"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                ),
+              height: 250, 
+              child: Lottie.asset(
+                'assets/animations/qr-animation.json', 
+                repeat: true,
+                animate: true,
+                fit: BoxFit.contain,
               ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "Toca abajo para escanear", 
+              style: TextStyle(color: isDark ? Colors.white38 : Colors.black38)
+            ),
+            const Spacer(), 
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        backgroundColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-        selectedItemColor: Colors.amber,
-        unselectedItemColor: isDark ? Colors.white54 : Colors.black45,
-        onTap: (index) {
-          setState(() => _selectedIndex = index);
-          if (index == 0) Navigator.push(context, MaterialPageRoute(builder: (c) => const HistorialPage()));
-          if (index == 1) _abrirEscanner(context);
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historial'),
-          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner, size: 35), label: 'Escanear'),
-          BottomNavigationBarItem(icon: Icon(Icons.campaign), label: 'Noticias'),
+      
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min, 
+        children: [
+          if (esAdmin)
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 10.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    width: double.infinity,
+                    height: 55,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(
+                        color: Colors.redAccent.withOpacity(0.35),
+                        width: 1.5,
+                      ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.redAccent.withOpacity(0.20),
+                          Colors.redAccent.withOpacity(0.05),
+                        ],
+                      ),
+                    ),
+                    child: InkWell(
+                      onTap: () => Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: (_) => const GeneradorQrScreen())
+                      ),
+                      borderRadius: BorderRadius.circular(25),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.qr_code_2, color: Colors.white),
+                          SizedBox(width: 10),
+                          Text(
+                            "GENERAR QR JORNADA",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          
+          BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            backgroundColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+            selectedItemColor: Colors.amber,
+            unselectedItemColor: isDark ? Colors.white54 : Colors.black45,
+            onTap: (index) {
+              setState(() => _selectedIndex = index);
+              if (index == 0) Navigator.push(context, MaterialPageRoute(builder: (c) => const HistorialPage()));
+              if (index == 1) _abrirEscanner(context);
+            },
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historial'),
+              BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner, size: 35), label: 'Escanear'),
+              BottomNavigationBarItem(icon: Icon(Icons.campaign), label: 'Noticias'),
+            ],
+          ),
         ],
       ),
     );
