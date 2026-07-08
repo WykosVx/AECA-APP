@@ -47,7 +47,8 @@ class ConstanciaPreviewScreen extends StatelessWidget {
                 onDoubleTap: _shareConstancia, 
                 child: Screenshot(
                   controller: _screenshotController,
-                  child: SizedBox(
+                   child: Container(
+                    color: Colors.white,
                     width: 500,
                     height: h,
                     child: Stack(
