@@ -3,14 +3,17 @@
   <img src="assets/Wykos_avatar.png" width="200" alt="Wykos Avatar">
 </div>
 
+<div align="center">
+  
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.x-00B4AB?logo=dart)
 ![Firebase](https://img.shields.io/badge/Firebase-Integrated-FFCA28?logo=firebase)
-![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)
 <img src="https://img.shields.io/badge/AECA%20🇵🇾-gold?style=for-the-badge" alt="Paraguay">
 ![Firestore](https://img.shields.io/badge/Firestore-Enabled-FFCA28?logo=firebase)
 ![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white)
 ![Release](https://img.shields.io/badge/release-v0.14.0-green)
+</div>
+
 # <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Objects/Graduation%20Cap.webp" alt="Graduation Cap" width="25" height="25" /> **ASISTENCIA DOCENTES (AECA-APP)**
 
 Esta es la aplicación oficial para la gestión y registro de asistencia docente. Diseñada para facilitar el control académico mediante tecnología móvil eficiente.
