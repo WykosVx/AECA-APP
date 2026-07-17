@@ -8,6 +8,7 @@ import 'screens/home_screen.dart';
 import 'screens/cedula_screen.dart'; 
 import 'package:lottie/lottie.dart';
 import 'dart:ui';
+import 'notification_service.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
 
@@ -18,10 +19,7 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
-    final notificationService = NotificationService();
-    await notificationService.inicializar();
-    
+    // Removemos el llamado directo de aquí para evitar el fallo silencioso
   } catch (e) {
     debugPrint("Error al inicializar Firebase: $e");
   }
@@ -35,8 +33,27 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final notificationService = NotificationService();
+        await notificationService.inicializar();
+      } catch (e) {
+        debugPrint("Error al inicializar el servicio de notificaciones: $e");
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +132,6 @@ class _DataValidatorWrapperState extends State<DataValidatorWrapper> {
   Widget build(BuildContext context) {
     if (_verificando) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     
-    // Si no está registrado, enviamos a CedulaScreen y pasamos la función para re-verificar al completar
     if (!_registrado) return CedulaScreen(onComplete: _checkData);
     
     return const HomeScreen();
@@ -167,65 +183,65 @@ class LoginPage extends StatelessWidget {
                   height: 120,
                   fit: BoxFit.contain,
                 ),
-              const SizedBox(height: 50),
-ClipRRect(
-  borderRadius: BorderRadius.circular(12),
-  child: BackdropFilter(
-    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-    child: Container(
-      width: 260,
-      height: 50,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white.withOpacity(0.2)
-              : Colors.black.withOpacity(0.1),
-          width: 1.5,
-        ),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: Theme.of(context).brightness == Brightness.dark
-              ? [
-                  Colors.white.withOpacity(0.12),
-                  Colors.white.withOpacity(0.03),
-                ]
-              : [
-                  Colors.black.withOpacity(0.05),
-                  Colors.black.withOpacity(0.01),
-                ],
-        ),
-      ),
-      child: InkWell(
-        onTap: () => _signInWithGoogle(context),
-        borderRadius: BorderRadius.circular(12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/google_logo.png',
-              height: 20,
-              width: 20,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Continuar con Google',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black87,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  ),
-),
+                const SizedBox(height: 50),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      width: 260,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withOpacity(0.2)
+                              : Colors.black.withOpacity(0.1),
+                          width: 1.5,
+                        ),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: Theme.of(context).brightness == Brightness.dark
+                              ? [
+                                  Colors.white.withOpacity(0.12),
+                                  Colors.white.withOpacity(0.03),
+                                ]
+                              : [
+                                  Colors.black.withOpacity(0.05),
+                                  Colors.black.withOpacity(0.01),
+                                ],
+                        ),
+                      ),
+                      child: InkWell(
+                        onTap: () => _signInWithGoogle(context),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/google_logo.png',
+                              height: 20,
+                              width: 20,
+                              fit: BoxFit.contain,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Continuar con Google',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 Expanded(
                   child: Lottie.asset(
                     'assets/animations/people-animation.json', 
