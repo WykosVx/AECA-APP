@@ -9,6 +9,7 @@ import 'constancia_screen.dart';
 import 'generador_qr_screen.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:ui';
+import 'package:audioplayers/audioplayers.dart'; 
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 1;
+
   void _confirmarCerrarSesion(BuildContext context) {
     showDialog(
       context: context,
@@ -62,6 +64,75 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _mostrarExitoAsistencia(BuildContext context) {
+    try {
+      final AudioPlayer player = AudioPlayer();
+      player.play(AssetSource('sounds/success.mp3')); 
+    } catch (e) {
+      debugPrint("Error al reproducir sonido: $e");
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        Future.delayed(const Duration(seconds: 3), () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+        });
+
+        final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                padding: const EdgeInsets.all(30),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.85),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.05),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Tu animación de Lottie de Check de éxito
+                    SizedBox(
+                      height: 150,
+                      child: Lottie.asset(
+                        'assets/animations/Successful Check.json',
+                        repeat: false,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                    Text(
+                      "Ya marcaste la asistencia de hoy",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _registrarAsistencia(String rawData) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -96,7 +167,8 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ Asistencia registrada"), backgroundColor: Colors.green));
+      _mostrarExitoAsistencia(context);
+      
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Error: $e"), backgroundColor: Colors.red));
     }
@@ -167,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         IgnorePointer(
                           child: SizedBox(
-                            width: 100, // Ajustado a 100 según lo que conversamos para que rodee bien el perfil
+                            width: 100, 
                             height: 100,
                             child: Lottie.asset(
                               'assets/animations/circle-avataranimation.json',
