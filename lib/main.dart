@@ -33,6 +33,7 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
+// Convertido a StatefulWidget únicamente para llamar al permiso de manera segura tras el montaje
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -45,6 +46,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     
+    // Esto asegura que la app ya se dibujó en la pantalla antes de lanzar el cartel de permisos
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         final notificationService = NotificationService();
