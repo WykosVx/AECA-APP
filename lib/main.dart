@@ -18,6 +18,10 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    
+    final notificationService = NotificationService();
+    await notificationService.inicializar();
+    
   } catch (e) {
     debugPrint("Error al inicializar Firebase: $e");
   }
