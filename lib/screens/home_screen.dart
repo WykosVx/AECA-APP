@@ -11,6 +11,9 @@ import 'noticias_screen.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:ui';
 import 'package:audioplayers/audioplayers.dart'; 
+import 'package:http/http.dart' as http; 
+import 'dart:convert'; 
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,6 +24,53 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 1;
+
+  bool _tieneUpdate = false;
+  String _releaseUrl = "";
+  final String _currentVersion = "0.17.0"; 
+
+  @override
+  void initState() {
+    super.initState();
+    _comprobarActualizacion(); 
+  }
+
+  Future<void> _comprobarActualizacion() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.github.com/repos/WykosVx/AECA-APP/releases/latest'),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        String latestTag = data['tag_name'] ?? ""; 
+        String cleanLatest = latestTag.replaceAll('v', '').trim(); 
+      
+        if (cleanLatest != _currentVersion && cleanLatest.isNotEmpty) {
+          setState(() {
+            _tieneUpdate = true;
+            _releaseUrl = data['html_url'] ?? "https://github.com/WykosVx/AECA-APP/releases";
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error al buscar actualizaciones en GitHub: $e");
+    }
+  }
+
+  Future<void> _descargarNuevaVersion() async {
+    if (_releaseUrl.isEmpty) return;
+    final Uri url = Uri.parse(_releaseUrl);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No se pudo abrir el enlace de descarga")),
+        );
+      }
+    }
+  }
 
   void _confirmarCerrarSesion(BuildContext context) {
     showDialog(
@@ -105,7 +155,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Tu animación de Lottie de Check de éxito
                     SizedBox(
                       height: 150,
                       child: Lottie.asset(
@@ -211,46 +260,95 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  PopupMenuButton<String>(
-                    offset: const Offset(0, 60),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    onSelected: (value) {
-                      if (value == 'logout') _confirmarCerrarSesion(context);
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'logout',
-                        child: Row(
+                  
+                  // Fila para agrupar el botón de actualizar y la foto de perfil
+                  Row(
+                    children: [
+                      // MOSTRAR BOTÓN DE ACTUALIZACIÓN SOLO SI HAY NUEVA VERSIÓN EN GITHUB
+                      if (_tieneUpdate) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                color: Colors.amber.withOpacity(0.15),
+                                border: Border.all(
+                                  color: Colors.amber.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Stack(
+                                children: [
+                                  IconButton(
+                                    onPressed: _descargarNuevaVersion,
+                                    icon: const Icon(Icons.system_update_alt_rounded, color: Colors.amber),
+                                    tooltip: "Nueva versión disponible",
+                                  ),
+                                  // Punto rojo parpadeante de atención
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.redAccent,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 15), // Separación entre el botón y tu perfil
+                      ],
+
+                      PopupMenuButton<String>(
+                        offset: const Offset(0, 60),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        onSelected: (value) {
+                          if (value == 'logout') _confirmarCerrarSesion(context);
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'logout',
+                            child: Row(
+                              children: [
+                                Icon(Icons.logout, color: Colors.red, size: 20),
+                                SizedBox(width: 10),
+                                Text("Cerrar Sesión", style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ],
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            Icon(Icons.logout, color: Colors.red, size: 20),
-                            SizedBox(width: 10),
-                            Text("Cerrar Sesión", style: TextStyle(color: Colors.red)),
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.amber,
+                              backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
+                              child: user?.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
+                            ),
+                            IgnorePointer(
+                              child: SizedBox(
+                                width: 100, 
+                                height: 100,
+                                child: Lottie.asset(
+                                  'assets/animations/circle-avataranimation.json',
+                                  repeat: true,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ],
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.amber,
-                          backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
-                          child: user?.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
-                        ),
-                        IgnorePointer(
-                          child: SizedBox(
-                            width: 100, 
-                            height: 100,
-                            child: Lottie.asset(
-                              'assets/animations/circle-avataranimation.json',
-                              repeat: true,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ],
               ),
