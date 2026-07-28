@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 import 'constancia_screen.dart';
 import 'generador_qr_screen.dart';
+import 'noticias_screen.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:ui';
 import 'package:audioplayers/audioplayers.dart'; 
@@ -335,8 +336,12 @@ class _HomeScreenState extends State<HomeScreen> {
             unselectedItemColor: isDark ? Colors.white54 : Colors.black45,
             onTap: (index) {
               setState(() => _selectedIndex = index);
+              // Historial
               if (index == 0) Navigator.push(context, MaterialPageRoute(builder: (c) => const HistorialPage()));
+              // Escanear
               if (index == 1) _abrirEscanner(context);
+              // CONECTADO: Noticias (Índice 2) abre tu nueva NoticiasPage()
+              if (index == 2) Navigator.push(context, MaterialPageRoute(builder: (c) => const NoticiasPage()));
             },
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historial'),
