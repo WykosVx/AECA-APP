@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
-    id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+    id("kotlin-android")
     id("com.google.gms.google-services")
 }
 
@@ -49,4 +49,4 @@ applicationVariants.all {
 flutter {
     source = "../.."
 }
-apply(plugin = "com.google.gms.google-services")
+
