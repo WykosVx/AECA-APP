@@ -2,7 +2,7 @@ name: asistencia
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+4
+version: 0.17.0
 
 environment:
   sdk: ^3.11.4
@@ -13,6 +13,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   firebase_core: ^4.6.0
   firebase_auth: ^6.3.0
+  audioplayers: ^6.0.0
   cloud_firestore: ^6.2.0
   google_sign_in: ^6.2.1
   mobile_scanner: ^5.1.0
@@ -27,25 +28,25 @@ dependencies:
   screenshot: ^3.0.0
   path_provider: ^2.1.5
   lottie: ^3.3.3
+  firebase_messaging: ^16.4.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   
-  flutter_launcher_icons: "^0.13.1"
+  flutter_launcher_icons: "^0.14.0"
 
 flutter:
   uses-material-design: true
 
 
   assets:
-    - assets/animations/cedula-screen-animation.json
-    - assets/animations/qr-animation.json
-    - assets/animations/people-animation.json
+    - assets/animations/
     - assets/google_logo.png
     - assets/logo_aeca.png
     - assets/logo_fondo.png
     - assets/constancia_plantilla.png
+    - assets/sounds/
 
 flutter_launcher_icons:
   android: "launcher_icon"
