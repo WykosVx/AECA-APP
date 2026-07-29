@@ -41,8 +41,6 @@ Esta es la aplicación oficial para la gestión y registro de asistencia docente
 ### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Objects/Briefcase.webp" alt="Briefcase" width="25" height="25" />**Releases**
 Puedes descargar la versión instalable más reciente (APK) desde la sección de **[Releases](https://github.com/WykosVx/AECA-APP/releases)** de este repositorio.
 
-# <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/People/People%20Hugging.webp" alt="People Hugging" width="25" height="25" />  Apoyando el desarrollo
-
 ¡Gracias por interesarte en apoyar **AECA APP**! Este proyecto se mantiene gracias al esfuerzo y tiempo dedicado a su desarrollo.
 
 ---
