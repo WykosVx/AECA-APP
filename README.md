@@ -11,7 +11,7 @@
 <img src="https://img.shields.io/badge/AECA%20🇵🇾-gold?style=for-the-badge" alt="Paraguay">
 ![Firestore](https://img.shields.io/badge/Firestore-Enabled-FFCA28?logo=firebase)
 ![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white)
-![Release](https://img.shields.io/badge/release-v0.14.0-green)
+![Release](https://img.shields.io/badge/release-v0.17.0-gold)
 </div>
 
 # <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Objects/Graduation%20Cap.webp" alt="Graduation Cap" width="25" height="25" /> **ASISTENCIA DOCENTES (AECA-APP)**
