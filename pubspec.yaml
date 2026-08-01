@@ -2,7 +2,7 @@ name: asistencia
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 0.17.0
+version: 0.18.0
 
 environment:
   sdk: ^3.11.4
@@ -29,6 +29,7 @@ dependencies:
   path_provider: ^2.1.5
   lottie: ^3.3.3
   firebase_messaging: ^16.4.3
+  shake: ^3.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -45,6 +46,7 @@ flutter:
     - assets/google_logo.png
     - assets/logo_aeca.png
     - assets/logo_fondo.png
+    - assets/Creditos.png
     - assets/constancia_plantilla.png
     - assets/sounds/
 
