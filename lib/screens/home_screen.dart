@@ -13,7 +13,8 @@ import 'dart:ui';
 import 'package:audioplayers/audioplayers.dart'; 
 import 'package:http/http.dart' as http; 
 import 'dart:convert'; 
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart'; 
+import 'package:shake/shake.dart'; 
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,12 +28,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _tieneUpdate = false;
   String _releaseUrl = "";
-  final String _currentVersion = "0.17.0"; 
+  final String _currentVersion = "0.18.0"; 
+
+  bool _dialogoAbierto = false; 
+  ShakeDetector? _shakeDetector; 
 
   @override
   void initState() {
     super.initState();
     _comprobarActualizacion(); 
+
+    _shakeDetector = ShakeDetector.autoStart(
+      onPhoneShake: (_) {
+        if (!_dialogoAbierto) {
+          _mostrarCreditos(context); 
+        }
+      },
+      shakeThresholdGravity: 2.5, 
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeDetector?.stopListening();
+    super.dispose();
   }
 
   Future<void> _comprobarActualizacion() async {
@@ -44,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         String latestTag = data['tag_name'] ?? ""; 
-        String cleanLatest = latestTag.replaceAll('v', '').trim(); 
+        String cleanLatest = latestTag.replaceAll('v', '').replaceAll(RegExp(r'^\.'), '').trim(); 
       
         if (cleanLatest != _currentVersion && cleanLatest.isNotEmpty) {
           setState(() {
@@ -69,6 +88,22 @@ class _HomeScreenState extends State<HomeScreen> {
           const SnackBar(content: Text("No se pudo abrir el enlace de descarga")),
         );
       }
+    }
+  }
+
+  Future<void> _abrirInstagram(String usuario) async {
+    final Uri nativeUrl = Uri.parse("instagram://user?username=$usuario");
+    final Uri webUrl = Uri.parse("https://www.instagram.com/$usuario");
+    try {
+      if (await canLaunchUrl(nativeUrl)) {
+        await launchUrl(nativeUrl, mode: LaunchMode.externalApplication);
+      } else if (await canLaunchUrl(webUrl)) {
+        await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+      } else {
+        throw Exception('No se pudo abrir Instagram');
+      }
+    } catch (e) {
+      debugPrint("Error al abrir Instagram: $e");
     }
   }
 
@@ -224,6 +259,130 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _mostrarCreditos(BuildContext context) {
+    setState(() {
+      _dialogoAbierto = true; 
+    });
+
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(25),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black.withOpacity(0.85) : Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.code_rounded,
+                      size: 40,
+                      color: Colors.amber,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      "Este proyecto fue desarrollado por Wykos",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: Image.asset(
+                        'assets/Creditos.png', 
+                        width: 158,
+                        height: 221,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 20),
+                    InkWell(
+                      onTap: () => _abrirInstagram("williamduartezz"), 
+                      borderRadius: BorderRadius.circular(15),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.pink.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: Colors.pink.withOpacity(0.25),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.camera_alt_rounded, 
+                              color: Colors.pinkAccent,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "@williamduartezz",
+                              style: TextStyle(
+                                color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            _dialogoAbierto = false; 
+                          });
+                        },
+                        child: const Text(
+                          "CERRAR",
+                          style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    ).then((_) {
+      setState(() {
+        _dialogoAbierto = false;
+      });
+    });
+  }
+
   // --- 3. DISEÑO (UI) ---
   @override
   Widget build(BuildContext context) {
@@ -261,10 +420,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   
-                  // Fila para agrupar el botón de actualizar y la foto de perfil
                   Row(
                     children: [
-                      // MOSTRAR BOTÓN DE ACTUALIZACIÓN SOLO SI HAY NUEVA VERSIÓN EN GITHUB
                       if (_tieneUpdate) ...[
                         ClipRRect(
                           borderRadius: BorderRadius.circular(15),
@@ -286,7 +443,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     icon: const Icon(Icons.system_update_alt_rounded, color: Colors.amber),
                                     tooltip: "Nueva versión disponible",
                                   ),
-                                  // Punto rojo parpadeante de atención
                                   Positioned(
                                     top: 8,
                                     right: 8,
@@ -304,7 +460,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 15), // Separación entre el botón y tu perfil
+                        const SizedBox(width: 15), 
                       ],
 
                       PopupMenuButton<String>(
@@ -434,11 +590,8 @@ class _HomeScreenState extends State<HomeScreen> {
             unselectedItemColor: isDark ? Colors.white54 : Colors.black45,
             onTap: (index) {
               setState(() => _selectedIndex = index);
-              // Historial
               if (index == 0) Navigator.push(context, MaterialPageRoute(builder: (c) => const HistorialPage()));
-              // Escanear
               if (index == 1) _abrirEscanner(context);
-              // CONECTADO: Noticias (Índice 2) abre tu nueva NoticiasPage()
               if (index == 2) Navigator.push(context, MaterialPageRoute(builder: (c) => const NoticiasPage()));
             },
             items: const [
