@@ -10,25 +10,19 @@ class GeneradorQrScreen extends StatefulWidget {
   State<GeneradorQrScreen> createState() => _GeneradorQrScreenState();
 }
 
-class _GeneradorQrScreenState extends State<GeneradorQrScreen>
-    with SingleTickerProviderStateMixin {
+class _GeneradorQrScreenState extends State<GeneradorQrScreen> {
   String _qrData = "";
   bool _cargando = true;
   String? _idJornada;
-  Timer? _timerRotacion;
+  Timer? _timerSegundo;
 
-  // Tiempo de validez/rotación del QR en segundos (10s o 15s es lo recomendado)
-  static const int _duracionSegundos = 10;
-  
-  late AnimationController _animController;
+  // Tiempo total de validez en segundos
+  static const int _duracionTotal = 10;
+  int _segundosRestantes = _duracionTotal;
 
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: _duracionSegundos),
-    );
     _iniciarGenerador();
   }
 
@@ -46,22 +40,24 @@ class _GeneradorQrScreenState extends State<GeneradorQrScreen>
         _idJornada = snapshot.docs.first.id;
         _generarNuevoQr();
 
-        // Reinicia la barra de progreso
-        _animController.forward(from: 0.0);
+        // Timer que descuenta segundo a segundo de forma exacta
+        _timerSegundo = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (!mounted) return;
 
-        // Timer periódico que refresca el QR
-        _timerRotacion = Timer.periodic(
-          const Duration(seconds: _duracionSegundos),
-          (timer) {
-            if (!mounted) return;
-            _generarNuevoQr();
-            _animController.forward(from: 0.0);
-          },
-        );
+          setState(() {
+            if (_segundosRestantes > 1) {
+              _segundosRestantes--;
+            } else {
+              // Llega a cero -> Genera nuevo QR y reinicia contador a 10
+              _segundosRestantes = _duracionTotal;
+              _generarNuevoQr();
+            }
+          });
+        });
       } else {
         setState(() {
           _cargando = false;
-          _qrData = "ERROR: No hay jornadas activas en este momento.";
+          _qrData = "ERROR: No hay jornadas activas";
         });
       }
     } catch (e) {
@@ -78,20 +74,21 @@ class _GeneradorQrScreenState extends State<GeneradorQrScreen>
     final int timestamp = DateTime.now().millisecondsSinceEpoch;
     setState(() {
       _cargando = false;
-      // Formato: idJornada|timestamp
       _qrData = "$_idJornada|$timestamp";
     });
   }
 
   @override
   void dispose() {
-    _timerRotacion?.cancel();
-    _animController.dispose();
+    _timerSegundo?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Progreso exacto de 1.0 (lleno) a 0.0 (vacío)
+    final double progreso = _segundosRestantes / _duracionTotal;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Generar QR de Asistencia"),
@@ -136,7 +133,7 @@ class _GeneradorQrScreenState extends State<GeneradorQrScreen>
                         ),
                         const SizedBox(height: 20),
 
-                        // Contenedor del QR
+                        // Contenedor del código QR
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -164,33 +161,38 @@ class _GeneradorQrScreenState extends State<GeneradorQrScreen>
 
                         const SizedBox(height: 25),
 
-                        // Barra de tiempo restante visual
+                        // Barra de progreso y contador sincronizado
                         SizedBox(
                           width: 260,
-                          child: AnimatedBuilder(
-                            animation: _animController,
-                            builder: (context, child) {
-                              final restante = (_duracionSegundos * (1.0 - _animController.value)).ceil();
-                              return Column(
-                                children: [
-                                  LinearProgressIndicator(
-                                    value: 1.0 - _animController.value,
+                          child: Column(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: TweenAnimationBuilder<double>(
+                                  duration: const Duration(milliseconds: 900),
+                                  curve: Curves.linear,
+                                  tween: Tween<double>(
+                                    begin: progreso,
+                                    end: progreso,
+                                  ),
+                                  builder: (context, value, _) => LinearProgressIndicator(
+                                    value: value,
                                     backgroundColor: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(10),
+                                    color: value > 0.3 ? Colors.amber.shade700 : Colors.red,
                                     minHeight: 8,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    "El código se actualiza en $restante s",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey.shade700,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                "El código se actualiza en $_segundosRestantes s",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: _segundosRestantes <= 3 ? Colors.red : Colors.grey.shade700,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 
