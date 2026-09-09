@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _tieneUpdate = false;
   String _releaseUrl = "";
-  final String _currentVersion = "0.18.0"; 
+  final String _currentVersion = "0.19.0"; 
 
   bool _dialogoAbierto = false; 
   ShakeDetector? _shakeDetector; 
