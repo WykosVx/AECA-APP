@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
-    id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+    id("kotlin-android")
     id("com.google.gms.google-services")
 }
 
@@ -33,7 +33,7 @@ applicationVariants.all {
         minSdk = flutter.minSdkVersion 
         targetSdk = 34 
         versionCode = 2 
-        versionName = "1.0.1" 
+        versionName = "0.18.0" 
         
         multiDexEnabled = true
     }
@@ -49,4 +49,4 @@ applicationVariants.all {
 flutter {
     source = "../.."
 }
-apply(plugin = "com.google.gms.google-services")
+

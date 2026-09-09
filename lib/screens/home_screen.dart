@@ -7,7 +7,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 import 'constancia_screen.dart';
 import 'generador_qr_screen.dart';
+import 'noticias_screen.dart';
 import 'package:lottie/lottie.dart';
+import 'dart:ui';
+import 'package:audioplayers/audioplayers.dart'; 
+import 'package:http/http.dart' as http; 
+import 'dart:convert'; 
+import 'package:url_launcher/url_launcher.dart'; 
+import 'package:shake/shake.dart'; 
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +25,88 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 1;
+
+  bool _tieneUpdate = false;
+  String _releaseUrl = "";
+  final String _currentVersion = "0.18.0"; 
+
+  bool _dialogoAbierto = false; 
+  ShakeDetector? _shakeDetector; 
+
+  @override
+  void initState() {
+    super.initState();
+    _comprobarActualizacion(); 
+
+    _shakeDetector = ShakeDetector.autoStart(
+      onPhoneShake: (_) {
+        if (!_dialogoAbierto) {
+          _mostrarCreditos(context); 
+        }
+      },
+      shakeThresholdGravity: 2.5, 
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeDetector?.stopListening();
+    super.dispose();
+  }
+
+  Future<void> _comprobarActualizacion() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.github.com/repos/WykosVx/AECA-APP/releases/latest'),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        String latestTag = data['tag_name'] ?? ""; 
+        String cleanLatest = latestTag.replaceAll('v', '').replaceAll(RegExp(r'^\.'), '').trim(); 
+      
+        if (cleanLatest != _currentVersion && cleanLatest.isNotEmpty) {
+          setState(() {
+            _tieneUpdate = true;
+            _releaseUrl = data['html_url'] ?? "https://github.com/WykosVx/AECA-APP/releases";
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error al buscar actualizaciones en GitHub: $e");
+    }
+  }
+
+  Future<void> _descargarNuevaVersion() async {
+    if (_releaseUrl.isEmpty) return;
+    final Uri url = Uri.parse(_releaseUrl);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No se pudo abrir el enlace de descarga")),
+        );
+      }
+    }
+  }
+
+  Future<void> _abrirInstagram(String usuario) async {
+    final Uri nativeUrl = Uri.parse("instagram://user?username=$usuario");
+    final Uri webUrl = Uri.parse("https://www.instagram.com/$usuario");
+    try {
+      if (await canLaunchUrl(nativeUrl)) {
+        await launchUrl(nativeUrl, mode: LaunchMode.externalApplication);
+      } else if (await canLaunchUrl(webUrl)) {
+        await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+      } else {
+        throw Exception('No se pudo abrir Instagram');
+      }
+    } catch (e) {
+      debugPrint("Error al abrir Instagram: $e");
+    }
+  }
+
   void _confirmarCerrarSesion(BuildContext context) {
     showDialog(
       context: context,
@@ -61,6 +150,74 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _mostrarExitoAsistencia(BuildContext context) {
+    try {
+      final AudioPlayer player = AudioPlayer();
+      player.play(AssetSource('sounds/success.mp3')); 
+    } catch (e) {
+      debugPrint("Error al reproducir sonido: $e");
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        Future.delayed(const Duration(seconds: 3), () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+        });
+
+        final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                padding: const EdgeInsets.all(30),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black.withOpacity(0.8) : Colors.white.withOpacity(0.85),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.05),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 150,
+                      child: Lottie.asset(
+                        'assets/animations/Successful Check.json',
+                        repeat: false,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                    Text(
+                      "Ya marcaste la asistencia de hoy",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _registrarAsistencia(String rawData) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -71,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     final String nombreManual = prefs.getString('user_nombre_completo') ?? "Socio";
     final String cedulaManual = prefs.getString('user_cedula') ?? "Sin cédula";
     final jornadaId = parts[0];
@@ -95,10 +252,135 @@ final prefs = await SharedPreferences.getInstance();
       });
       
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ Asistencia registrada"), backgroundColor: Colors.green));
+      _mostrarExitoAsistencia(context);
+      
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Error: $e"), backgroundColor: Colors.red));
     }
+  }
+
+  void _mostrarCreditos(BuildContext context) {
+    setState(() {
+      _dialogoAbierto = true; 
+    });
+
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(25),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black.withOpacity(0.85) : Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.code_rounded,
+                      size: 40,
+                      color: Colors.amber,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      "Este proyecto fue desarrollado por Wykos",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: Image.asset(
+                        'assets/Creditos.png', 
+                        width: 158,
+                        height: 221,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 20),
+                    InkWell(
+                      onTap: () => _abrirInstagram("williamduartezz"), 
+                      borderRadius: BorderRadius.circular(15),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.pink.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: Colors.pink.withOpacity(0.25),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.camera_alt_rounded, 
+                              color: Colors.pinkAccent,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "@williamduartezz",
+                              style: TextStyle(
+                                color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            _dialogoAbierto = false; 
+                          });
+                        },
+                        child: const Text(
+                          "CERRAR",
+                          style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    ).then((_) {
+      setState(() {
+        _dialogoAbierto = false;
+      });
+    });
   }
 
   // --- 3. DISEÑO (UI) ---
@@ -137,81 +419,187 @@ final prefs = await SharedPreferences.getInstance();
                       ),
                     ],
                   ),
-                  PopupMenuButton<String>(
-                    offset: const Offset(0, 60),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    onSelected: (value) {
-                      if (value == 'logout') _confirmarCerrarSesion(context);
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'logout',
-                        child: Row(
+                  
+                  Row(
+                    children: [
+                      if (_tieneUpdate) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                color: Colors.amber.withOpacity(0.15),
+                                border: Border.all(
+                                  color: Colors.amber.withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Stack(
+                                children: [
+                                  IconButton(
+                                    onPressed: _descargarNuevaVersion,
+                                    icon: const Icon(Icons.system_update_alt_rounded, color: Colors.amber),
+                                    tooltip: "Nueva versión disponible",
+                                  ),
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.redAccent,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 15), 
+                      ],
+
+                      PopupMenuButton<String>(
+                        offset: const Offset(0, 60),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        onSelected: (value) {
+                          if (value == 'logout') _confirmarCerrarSesion(context);
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'logout',
+                            child: Row(
+                              children: [
+                                Icon(Icons.logout, color: Colors.red, size: 20),
+                                SizedBox(width: 10),
+                                Text("Cerrar Sesión", style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ],
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            Icon(Icons.logout, color: Colors.red, size: 20),
-                            SizedBox(width: 10),
-                            Text("Cerrar Sesión", style: TextStyle(color: Colors.red)),
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.amber,
+                              backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
+                              child: user?.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
+                            ),
+                            IgnorePointer(
+                              child: SizedBox(
+                                width: 100, 
+                                height: 100,
+                                child: Lottie.asset(
+                                  'assets/animations/circle-avataranimation.json',
+                                  repeat: true,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ],
-                    child: CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.amber,
-                      backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
-                      child: user?.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
-                    ),
                   ),
                 ],
               ),
             ),
             SizedBox(
-  height: 250, 
-  child: Lottie.asset(
-    'assets/animations/qr-animation.json', 
-    repeat: true,
-    animate: true,
-    fit: BoxFit.contain,
-  ),
-),
-const SizedBox(height: 20),
-Text(
-  "Toca abajo para escanear", 
-  style: TextStyle(color: isDark ? Colors.white38 : Colors.black38)
-),
-const Spacer(),
-            if (esAdmin)
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: ElevatedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GeneradorQrScreen())),
-                  icon: const Icon(Icons.qr_code_2),
-                  label: const Text("GENERAR QR JORNADA"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 55),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                ),
+              height: 250, 
+              child: Lottie.asset(
+                'assets/animations/qr-animation.json', 
+                repeat: true,
+                animate: true,
+                fit: BoxFit.contain,
               ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "Toca abajo para escanear", 
+              style: TextStyle(color: isDark ? Colors.white38 : Colors.black38)
+            ),
+            const Spacer(), 
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        backgroundColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-        selectedItemColor: Colors.amber,
-        unselectedItemColor: isDark ? Colors.white54 : Colors.black45,
-        onTap: (index) {
-          setState(() => _selectedIndex = index);
-          if (index == 0) Navigator.push(context, MaterialPageRoute(builder: (c) => const HistorialPage()));
-          if (index == 1) _abrirEscanner(context);
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historial'),
-          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner, size: 35), label: 'Escanear'),
-          BottomNavigationBarItem(icon: Icon(Icons.campaign), label: 'Noticias'),
+      
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min, 
+        children: [
+          if (esAdmin)
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 10.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    width: double.infinity,
+                    height: 55,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(
+                        color: Colors.redAccent.withOpacity(0.35),
+                        width: 1.5,
+                      ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.redAccent.withOpacity(0.20),
+                          Colors.redAccent.withOpacity(0.05),
+                        ],
+                      ),
+                    ),
+                    child: InkWell(
+                      onTap: () => Navigator.push(
+                        context, 
+                        MaterialPageRoute(builder: (_) => const GeneradorQrScreen())
+                      ),
+                      borderRadius: BorderRadius.circular(25),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.qr_code_2, color: Colors.white),
+                          SizedBox(width: 10),
+                          Text(
+                            "GENERAR QR JORNADA",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          
+          BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            backgroundColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+            selectedItemColor: Colors.amber,
+            unselectedItemColor: isDark ? Colors.white54 : Colors.black45,
+            onTap: (index) {
+              setState(() => _selectedIndex = index);
+              if (index == 0) Navigator.push(context, MaterialPageRoute(builder: (c) => const HistorialPage()));
+              if (index == 1) _abrirEscanner(context);
+              if (index == 2) Navigator.push(context, MaterialPageRoute(builder: (c) => const NoticiasPage()));
+            },
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historial'),
+              BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner, size: 35), label: 'Escanear'),
+              BottomNavigationBarItem(icon: Icon(Icons.campaign), label: 'Noticias'),
+            ],
+          ),
         ],
       ),
     );

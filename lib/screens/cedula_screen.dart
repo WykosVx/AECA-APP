@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
+import 'dart:ui';
 
 class CedulaScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -32,7 +33,6 @@ class _CedulaScreenState extends State<CedulaScreen> {
   }
 
   Future<void> _guardarDatos() async {
-    // 1. Mostrar carga
     showDialog(
       context: context, 
       barrierDismissible: false, 
@@ -43,19 +43,17 @@ class _CedulaScreenState extends State<CedulaScreen> {
       String cedula = _cedulaController.text.trim();
       String nombreIngresado = _nombreController.text.trim().toUpperCase();
 
-      // 2. Consultar si la cédula existe en la colección 'Socios'
       DocumentSnapshot socioDoc = await FirebaseFirestore.instance
           .collection('Socios')
           .doc(cedula)
           .get();
 
       if (!socioDoc.exists) {
-        Navigator.pop(context); // Quitar el indicador de carga
+        Navigator.pop(context);
         _mostrarError("La cédula ingresada no se encuentra en el padrón.");
         return;
       }
 
-      // 3. Validar coincidencia de nombre
       String nombreEnBD = (socioDoc.data() as Map<String, dynamic>)['nombre'];
       if (nombreEnBD.trim().toUpperCase() != nombreIngresado) {
         Navigator.pop(context);
@@ -76,8 +74,8 @@ class _CedulaScreenState extends State<CedulaScreen> {
       await prefs.setString('user_nombre_completo', nombreEnBD);
       await prefs.setBool('datos_completados', true);
       
-      Navigator.pop(context); // Quitar el indicador de carga
-      widget.onComplete();    // Redirigir al Home
+      Navigator.pop(context); 
+      widget.onComplete();    
       
     } catch (e) {
       Navigator.pop(context);
@@ -93,6 +91,24 @@ class _CedulaScreenState extends State<CedulaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    final Color glassBgColor = isDarkMode 
+        ? Colors.white.withOpacity(0.08) 
+        : Colors.black.withOpacity(0.04);
+
+    final Color glassBorderColor = isDarkMode 
+        ? Colors.white.withOpacity(0.2) 
+        : Colors.black.withOpacity(0.1);
+
+    final Color labelColor = isDarkMode 
+        ? Colors.white70 
+        : Colors.black54;
+
+    final Color textColor = isDarkMode 
+        ? Colors.white 
+        : Colors.black87;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Registro de Datos")),
       body: Center(
@@ -108,28 +124,85 @@ class _CedulaScreenState extends State<CedulaScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              const SizedBox(height: 20),
-              const Text("Validación de Identidad", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _nombreController,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: "Nombre y Apellido", border: OutlineInputBorder()),
+              const Text(
+                "Validación de Identidad", 
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-              TextField(
-                controller: _cedulaController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: "Número de Cédula", border: OutlineInputBorder()),
+
+              ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(color: glassBorderColor, width: 1.5),
+                      color: glassBgColor,
+                    ),
+                    child: TextField(
+                      controller: _nombreController,
+                      textCapitalization: TextCapitalization.words,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: "Nombre y Apellido",
+                        labelStyle: TextStyle(color: labelColor),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ),
               ),
+              
+              const SizedBox(height: 20),
+
+              ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(color: glassBorderColor, width: 1.5),
+                      color: glassBgColor,
+                    ),
+                    child: TextField(
+                      controller: _cedulaController,
+                      keyboardType: TextInputType.number,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        labelText: "Número de Cédula",
+                        labelStyle: TextStyle(color: labelColor),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              
               const SizedBox(height: 30),
+
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: _camposLlenos ? Colors.amber : Colors.grey),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _camposLlenos ? Colors.amber : Colors.grey,
+                    elevation: _camposLlenos ? 3 : 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25), 
+                    ),
+                  ),
                   onPressed: _camposLlenos ? _guardarDatos : null, 
-                  child: const Text("GUARDAR Y VALIDAR", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "GUARDAR Y VALIDAR", 
+                    style: TextStyle(
+                      color: Colors.black, 
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],
